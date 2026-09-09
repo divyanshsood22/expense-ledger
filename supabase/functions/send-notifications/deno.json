@@ -1,0 +1,7 @@
+{
+  "nodeModulesDir": "none",
+  "imports": {
+    "@supabase/server": "npm:@supabase/server@^1",
+    "web-push": "npm:web-push@^3"
+  }
+}
