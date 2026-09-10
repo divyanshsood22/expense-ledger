@@ -8,25 +8,21 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { listExpenses, getHistoricalSummaries } from "@/lib/api";
 import { formatPaise } from "@/lib/money";
 import { currentMonthInIST, currentYearInIST, daysInMonth } from "@/lib/dates";
 import type { Expense, HistoricalSummary } from "@/types/expense";
 
-interface AnalyticsProps {
-  onBack: () => void;
-}
-
 const MONTH_LABELS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 
-const BAR_COLOR = "#2563eb";
+const BAR_COLOR = "#5B6B4C";
+const GRID_COLOR = "#E4DECD";
 
-export default function Analytics({ onBack }: AnalyticsProps) {
+export default function Analytics() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [summaries, setSummaries] = useState<HistoricalSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -96,84 +92,108 @@ export default function Analytics({ onBack }: AnalyticsProps) {
   const averageDailyPaise =
     daysWithSpending.length > 0
       ? Math.round(
-        daysWithSpending.reduce((sum, d) => sum + d.amount_paise, 0) / daysWithSpending.length,
-      )
+          daysWithSpending.reduce((sum, d) => sum + d.amount_paise, 0) / daysWithSpending.length,
+        )
       : 0;
 
+  if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (loadError) return <p className="text-sm text-destructive">{loadError}</p>;
+
   return (
-    <div className="mx-auto flex max-w-md flex-col gap-4 p-4">
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" size="sm" onClick={onBack}>
-          ← Dashboard
-        </Button>
-      </div>
+    <div className="flex flex-col gap-8">
+      <Card className="border-border shadow-none">
+        <CardHeader className="pb-2">
+          <CardTitle className="font-serif text-lg font-normal text-foreground">
+            Daily spending — this month
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-52 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={dailyData} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} vertical={false} />
+                <XAxis
+                  dataKey="day"
+                  tick={{ fontSize: 11, fill: "#726C60" }}
+                  axisLine={{ stroke: GRID_COLOR }}
+                  tickLine={false}
+                  interval={dailyData.length > 20 ? 4 : 2}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: "#726C60" }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(value: number) => formatPaise(value)}
+                  width={60}
+                />
+                <Tooltip
+                  cursor={{ fill: "#F1ECE1" }}
+                  contentStyle={{
+                    background: "#FFFFFF",
+                    border: "1px solid #E4DECD",
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                  formatter={(value) => formatPaise(Number(value))}
+                  labelFormatter={(day) => `Day ${day}`}
+                />
+                <Bar dataKey="amount_paise" fill={BAR_COLOR} radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-4 flex justify-between border-t border-border pt-3 text-sm">
+            <span className="text-muted-foreground">
+              Avg/day <span className="ml-1 tabular-nums text-foreground">{formatPaise(averageDailyPaise)}</span>
+            </span>
+            {highestDay.amount_paise > 0 && (
+              <span className="text-muted-foreground">
+                Highest <span className="ml-1 tabular-nums text-foreground">Day {highestDay.day} · {formatPaise(highestDay.amount_paise)}</span>
+              </span>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-      {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading...</p>
-      ) : loadError ? (
-        <p className="text-sm text-destructive">{loadError}</p>
-      ) : (
-        <>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Daily spending — this month</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-48 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={dailyData} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis
-                      dataKey="day"
-                      tick={{ fontSize: 11 }}
-                      interval={dailyData.length > 20 ? 4 : 2}
-                    />
-                    <YAxis
-                      tick={{ fontSize: 11 }}
-                      tickFormatter={(value: number) => formatPaise(value)}
-                      width={60}
-                    />
-                    <Tooltip
-                      formatter={(value) => formatPaise(Number(value))}
-                      labelFormatter={(day) => `Day ${day}`}
-                    />
-                    <Bar dataKey="amount_paise" fill={BAR_COLOR} radius={[3, 3, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="mt-3 flex justify-between text-sm text-muted-foreground">
-                <span>Avg/day: {formatPaise(averageDailyPaise)}</span>
-                {highestDay.amount_paise > 0 && (
-                  <span>Highest: Day {highestDay.day} ({formatPaise(highestDay.amount_paise)})</span>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Monthly spending — {currentYear}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-48 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyData} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                    <YAxis
-                      tick={{ fontSize: 11 }}
-                      tickFormatter={(value: number) => formatPaise(value)}
-                      width={60}
-                    />
-                    <Tooltip formatter={(value) => formatPaise(Number(value))} />
-                    <Bar dataKey="amount_paise" fill={BAR_COLOR} radius={[3, 3, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </>
-      )}
+      <Card className="border-border shadow-none">
+        <CardHeader className="pb-2">
+          <CardTitle className="font-serif text-lg font-normal text-foreground">
+            Monthly spending — {currentYear}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-52 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyData} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fontSize: 11, fill: "#726C60" }}
+                  axisLine={{ stroke: GRID_COLOR }}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: "#726C60" }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(value: number) => formatPaise(value)}
+                  width={60}
+                />
+                <Tooltip
+                  cursor={{ fill: "#F1ECE1" }}
+                  contentStyle={{
+                    background: "#FFFFFF",
+                    border: "1px solid #E4DECD",
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                  formatter={(value) => formatPaise(Number(value))}
+                />
+                <Bar dataKey="amount_paise" fill={BAR_COLOR} radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

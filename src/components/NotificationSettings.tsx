@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { savePushSubscription, removePushSubscription, ApiError } from "@/lib/api";
 import {
-    isPushSupported,
-    needsIOSInstall,
-    getExistingSubscription,
-    subscribeToPush,
-    unsubscribeFromPush,
+  isPushSupported,
+  needsIOSInstall,
+  getExistingSubscription,
+  subscribeToPush,
+  unsubscribeFromPush,
 } from "@/lib/push";
 
 type Status = "checking" | "unsupported" | "ios-needs-install" | "denied" | "enabled" | "disabled";
@@ -15,137 +14,122 @@ type Status = "checking" | "unsupported" | "ios-needs-install" | "denied" | "ena
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string;
 
 export default function NotificationSettings() {
-    const [status, setStatus] = useState<Status>("checking");
-    const [isWorking, setIsWorking] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<Status>("checking");
+  const [isWorking, setIsWorking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        let cancelled = false;
+  useEffect(() => {
+    let cancelled = false;
 
-        async function determineStatus() {
-            if (!isPushSupported()) {
-                if (!cancelled) setStatus("unsupported");
-                return;
-            }
-            if (needsIOSInstall()) {
-                if (!cancelled) setStatus("ios-needs-install");
-                return;
-            }
-            if (Notification.permission === "denied") {
-                if (!cancelled) setStatus("denied");
-                return;
-            }
-            const existing = await getExistingSubscription();
-            if (!cancelled) setStatus(existing ? "enabled" : "disabled");
-        }
-
-        determineStatus();
-        return () => {
-            cancelled = true;
-        };
-    }, []);
-
-    async function handleEnable() {
-        setError(null);
-        setIsWorking(true);
-        try {
-            const keys = await subscribeToPush(VAPID_PUBLIC_KEY);
-
-            try {
-                await savePushSubscription(keys);
-                setStatus("enabled");
-            } catch (saveErr) {
-                // Server save failed after the browser subscription was already
-                // created — roll the browser side back too, so we never leave the
-                // browser subscribed while push_subscriptions has no matching row.
-                await unsubscribeFromPush().catch(() => {
-                    // Best-effort cleanup: if this also fails, the subsequent status
-                    // remains accurate to what's actually true below regardless.
-                });
-                setStatus("disabled");
-                setError(
-                    saveErr instanceof ApiError
-                        ? "Subscribed, but couldn't save it to your account. Try again."
-                        : "Couldn't enable notifications. Try again.",
-                );
-            }
-        } catch (err) {
-            if (err instanceof Error && err.message === "denied") {
-                setStatus("denied");
-            } else {
-                setError("Couldn't enable notifications. Try again.");
-            }
-        } finally {
-            setIsWorking(false);
-        }
+    async function determineStatus() {
+      if (!isPushSupported()) {
+        if (!cancelled) setStatus("unsupported");
+        return;
+      }
+      if (needsIOSInstall()) {
+        if (!cancelled) setStatus("ios-needs-install");
+        return;
+      }
+      if (Notification.permission === "denied") {
+        if (!cancelled) setStatus("denied");
+        return;
+      }
+      const existing = await getExistingSubscription();
+      if (!cancelled) setStatus(existing ? "enabled" : "disabled");
     }
 
-    async function handleDisable() {
-        setError(null);
-        setIsWorking(true);
-        try {
-            const endpoint = await unsubscribeFromPush();
-            if (endpoint) {
-                await removePushSubscription(endpoint);
-            }
-            setStatus("disabled");
-        } catch {
-            setError("Couldn't disable notifications. Try again.");
-        } finally {
-            setIsWorking(false);
-        }
+    determineStatus();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function handleEnable() {
+    setError(null);
+    setIsWorking(true);
+    try {
+      const keys = await subscribeToPush(VAPID_PUBLIC_KEY);
+
+      try {
+        await savePushSubscription(keys);
+        setStatus("enabled");
+      } catch (saveErr) {
+        await unsubscribeFromPush().catch(() => {});
+        setStatus("disabled");
+        setError(
+          saveErr instanceof ApiError
+            ? "Subscribed, but couldn't save it to your account. Try again."
+            : "Couldn't enable notifications. Try again.",
+        );
+      }
+    } catch (err) {
+      if (err instanceof Error && err.message === "denied") {
+        setStatus("denied");
+      } else {
+        setError("Couldn't enable notifications. Try again.");
+      }
+    } finally {
+      setIsWorking(false);
     }
+  }
 
-    if (status === "checking") return null;
+  async function handleDisable() {
+    setError(null);
+    setIsWorking(true);
+    try {
+      const endpoint = await unsubscribeFromPush();
+      if (endpoint) {
+        await removePushSubscription(endpoint);
+      }
+      setStatus("disabled");
+    } catch {
+      setError("Couldn't disable notifications. Try again.");
+    } finally {
+      setIsWorking(false);
+    }
+  }
 
-    return (
-        <Card>
-            <CardHeader className="pb-2">
-                <CardTitle className="text-base">Notifications</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-2">
-                {status === "unsupported" && (
-                    <p className="text-sm text-muted-foreground">
-                        Notifications aren't supported in this browser.
-                    </p>
-                )}
+  if (status === "checking") return null;
 
-                {status === "ios-needs-install" && (
-                    <p className="text-sm text-muted-foreground">
-                        To get notifications on iPhone, add this app to your Home Screen first
-                        (Share → Add to Home Screen), then open it from there. Notifications can't
-                        be enabled from a regular Safari tab.
-                    </p>
-                )}
+  return (
+    <section className="flex items-start justify-between gap-4 border-t border-border pt-6 text-sm">
+      <div>
+        <p className="text-muted-foreground">Notifications</p>
 
-                {status === "denied" && (
-                    <p className="text-sm text-muted-foreground">
-                        Notifications are blocked for this site. Enable them in your browser or
-                        device settings, then reload this page.
-                    </p>
-                )}
+        {status === "unsupported" && (
+          <p className="mt-1 text-muted-foreground/80">Not supported in this browser.</p>
+        )}
+        {status === "ios-needs-install" && (
+          <p className="mt-1 max-w-sm text-muted-foreground/80">
+            Add this app to your Home Screen (Share → Add to Home Screen) to enable
+            notifications on iPhone.
+          </p>
+        )}
+        {status === "denied" && (
+          <p className="mt-1 text-muted-foreground/80">
+            Blocked — enable in your browser settings, then reload.
+          </p>
+        )}
+        {status === "enabled" && <p className="mt-1 text-foreground">Enabled</p>}
+        {status === "disabled" && <p className="mt-1 text-muted-foreground/80">Off</p>}
 
-                {status === "enabled" && (
-                    <>
-                        <p className="text-sm text-muted-foreground">Notifications are enabled.</p>
-                        <Button variant="outline" size="sm" onClick={handleDisable} disabled={isWorking}>
-                            {isWorking ? "Disabling..." : "Disable notifications"}
-                        </Button>
-                    </>
-                )}
+        {error && (
+          <p role="alert" className="mt-1 text-destructive">
+            {error}
+          </p>
+        )}
+      </div>
 
-                {status === "disabled" && (
-                    <Button size="sm" onClick={handleEnable} disabled={isWorking}>
-                        {isWorking ? "Enabling..." : "Enable notifications"}
-                    </Button>
-                )}
-
-                {error && (
-                    <p role="alert" className="text-sm text-destructive">
-                        {error}
-                    </p>
-                )}
-            </CardContent>
-        </Card>
-    );
+      {(status === "enabled" || status === "disabled") && (
+        <Button
+          variant={status === "enabled" ? "outline" : "default"}
+          size="sm"
+          onClick={status === "enabled" ? handleDisable : handleEnable}
+          disabled={isWorking}
+        >
+          {isWorking ? "…" : status === "enabled" ? "Disable" : "Enable"}
+        </Button>
+      )}
+    </section>
+  );
 }

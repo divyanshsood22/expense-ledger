@@ -1,16 +1,10 @@
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { listExpenses, getHistoricalSummaries } from "@/lib/api";
 import { formatPaise } from "@/lib/money";
 import { currentMonthInIST, shiftMonth, formatMonthLabel, formatDayLabel } from "@/lib/dates";
 import type { Expense, HistoricalSummary } from "@/types/expense";
 
-interface HistoryProps {
-  onBack: () => void;
-}
-
-export default function History({ onBack }: HistoryProps) {
+export default function History() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [summaries, setSummaries] = useState<HistoricalSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,78 +50,73 @@ export default function History({ onBack }: HistoryProps) {
   const isCurrentMonth = month === currentMonthInIST();
 
   return (
-    <div className="mx-auto flex max-w-md flex-col gap-4 p-4">
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" size="sm" onClick={onBack}>
-          ← Dashboard
-        </Button>
-      </div>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setMonth((m) => shiftMonth(m, -1))}
-          >
-            ←
-          </Button>
-          <CardTitle className="text-base">{formatMonthLabel(month)}</CardTitle>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setMonth((m) => shiftMonth(m, 1))}
-            disabled={isCurrentMonth}
-          >
-            →
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">Month total</p>
-          <p className="text-2xl font-semibold">{formatPaise(monthTotalPaise)}</p>
-        </CardContent>
-      </Card>
+    <div className="flex flex-col gap-8">
+      <section className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={() => setMonth((m) => shiftMonth(m, -1))}
+          className="px-2 py-1 text-lg text-muted-foreground hover:text-foreground"
+          aria-label="Previous month"
+        >
+          ‹
+        </button>
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">{formatMonthLabel(month)}</p>
+          <p className="mt-1 font-serif text-3xl tabular-nums text-foreground">
+            {formatPaise(monthTotalPaise)}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setMonth((m) => shiftMonth(m, 1))}
+          disabled={isCurrentMonth}
+          className="px-2 py-1 text-lg text-muted-foreground hover:text-foreground disabled:opacity-30"
+          aria-label="Next month"
+        >
+          ›
+        </button>
+      </section>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading...</p>
+        <p className="text-sm text-muted-foreground">Loading…</p>
       ) : loadError ? (
         <p className="text-sm text-destructive">{loadError}</p>
       ) : matchingSummary ? (
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground">
-              Summary only — no individual expenses recorded for this month.
-            </p>
-          </CardContent>
-        </Card>
+        <p className="text-sm text-muted-foreground">
+          Summary only — no individual expenses recorded for this month.
+        </p>
       ) : days.length === 0 ? (
         <p className="text-sm text-muted-foreground">No expenses recorded this month.</p>
       ) : (
-        days.map((day) => {
-          const dayExpenses = monthExpenses.filter((e) => e.expense_date === day);
-          const dayTotalPaise = dayExpenses.reduce((sum, e) => sum + e.amount_paise, 0);
+        <div className="flex flex-col">
+          {days.map((day) => {
+            const dayExpenses = monthExpenses.filter((e) => e.expense_date === day);
+            const dayTotalPaise = dayExpenses.reduce((sum, e) => sum + e.amount_paise, 0);
 
-          return (
-            <Card key={day}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-normal">{formatDayLabel(day)}</CardTitle>
-                <span className="text-sm font-medium">{formatPaise(dayTotalPaise)}</span>
-              </CardHeader>
-              <CardContent>
-                <ul className="flex flex-col gap-1">
+            return (
+              <div key={day} className="border-t border-border py-4 first:border-t-0 first:pt-0">
+                <div className="flex items-baseline justify-between">
+                  <p className="text-sm text-muted-foreground">{formatDayLabel(day)}</p>
+                  <p className="text-sm tabular-nums text-foreground">
+                    {formatPaise(dayTotalPaise)}
+                  </p>
+                </div>
+                <ul className="mt-2 divide-y divide-border/60">
                   {dayExpenses.map((expense) => (
-                    <li key={expense.id} className="flex items-center justify-between text-sm">
-                      <span className="truncate text-muted-foreground">
+                    <li key={expense.id} className="flex items-center justify-between gap-4 py-2">
+                      <span className="truncate text-foreground">
                         {expense.description || "—"}
                       </span>
-                      <span>{formatPaise(expense.amount_paise)}</span>
+                      <span className="tabular-nums text-foreground">
+                        {formatPaise(expense.amount_paise)}
+                      </span>
                     </li>
                   ))}
                 </ul>
-              </CardContent>
-            </Card>
-          );
-        })
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );

@@ -3,10 +3,10 @@ import AccessCode from "@/pages/AccessCode";
 import Dashboard from "@/pages/Dashboard";
 import History from "@/pages/History";
 import Analytics from "@/pages/Analytics";
+import Nav, { type View } from "@/components/Nav";
 import { checkSession } from "@/lib/api";
 
 type AuthState = "checking" | "authenticated" | "unauthenticated";
-type View = "dashboard" | "history" | "analytics";
 
 export default function App() {
   const [authState, setAuthState] = useState<AuthState>("checking");
@@ -31,7 +31,7 @@ export default function App() {
   if (authState === "checking") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-sm text-muted-foreground">Loading...</p>
+        <p className="font-serif text-lg text-muted-foreground">Ledger</p>
       </div>
     );
   }
@@ -40,18 +40,14 @@ export default function App() {
     return <AccessCode onSuccess={() => setAuthState("authenticated")} />;
   }
 
-  if (view === "history") {
-    return <History onBack={() => setView("dashboard")} />;
-  }
-
-  if (view === "analytics") {
-    return <Analytics onBack={() => setView("dashboard")} />;
-  }
-
   return (
-    <Dashboard
-      onViewHistory={() => setView("history")}
-      onViewAnalytics={() => setView("analytics")}
-    />
+    <div className="min-h-screen bg-background">
+      <Nav current={view} onNavigate={setView} />
+      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
+        {view === "dashboard" && <Dashboard />}
+        {view === "history" && <History />}
+        {view === "analytics" && <Analytics />}
+      </main>
+    </div>
   );
 }

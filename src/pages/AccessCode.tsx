@@ -2,13 +2,6 @@ import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { verifyAccessCode, ApiError } from "@/lib/api";
 
 interface AccessCodeProps {
@@ -44,39 +37,37 @@ export default function AccessCode({ onSuccess }: AccessCodeProps) {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Expense Ledger</CardTitle>
-          <CardDescription>Enter your access code to continue.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="access-code">Access code</Label>
-              <Input
-                id="access-code"
-                type="password"
-                autoComplete="off"
-                autoFocus
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                disabled={isSubmitting}
-              />
-            </div>
+    <div className="flex min-h-screen items-center justify-center bg-background px-6">
+      <div className="w-full max-w-xs">
+        <p className="text-center font-serif text-3xl text-foreground">Ledger</p>
+        <form onSubmit={handleSubmit} className="mt-10 flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="access-code" className="text-xs text-muted-foreground">
+              Access code
+            </Label>
+            <Input
+              id="access-code"
+              type="password"
+              autoComplete="off"
+              autoFocus
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              disabled={isSubmitting}
+              className="h-12"
+            />
+          </div>
 
-            {error && (
-              <p role="alert" className="text-sm text-destructive">
-                {error}
-              </p>
-            )}
+          {error && (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          )}
 
-            <Button type="submit" disabled={!code || isSubmitting}>
-              {isSubmitting ? "Verifying..." : "Enter"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          <Button type="submit" disabled={!code || isSubmitting} className="h-12">
+            {isSubmitting ? "Verifying…" : "Enter"}
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }
