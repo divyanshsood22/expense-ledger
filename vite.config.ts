@@ -14,4 +14,13 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    proxy: {
+      "/functions/v1": {
+        target: "https://jkpffonuieifcvcmwmke.supabase.co",
+        changeOrigin: true,
+        secure: true,
+      },
+    },
+  },
 })

@@ -1,6 +1,6 @@
 import type { Expense, HistoricalSummary } from "@/types/expense";
 
-const FUNCTIONS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
+const FUNCTIONS_URL = "/functions/v1";
 
 export class ApiError extends Error {
   status: number;
