@@ -96,18 +96,20 @@ export default function History() {
             return (
               <div key={day} className="border-t border-border py-4 first:border-t-0 first:pt-0">
                 <div className="flex items-baseline justify-between">
-                  <p className="text-sm text-muted-foreground">{formatDayLabel(day)}</p>
-                  <p className="text-sm tabular-nums text-foreground">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {formatDayLabel(day)}
+                  </p>
+                  <p className="text-sm font-medium tabular-nums text-foreground">
                     {formatPaise(dayTotalPaise)}
                   </p>
                 </div>
-                <ul className="mt-2 divide-y divide-border/60">
+                <ul className="mt-3">
                   {dayExpenses.map((expense) => (
-                    <li key={expense.id} className="flex items-center justify-between gap-4 py-2">
+                    <li key={expense.id} className="flex items-center justify-between gap-4 py-2.5">
                       <span className="truncate text-foreground">
                         {expense.description || "—"}
                       </span>
-                      <span className="tabular-nums text-foreground">
+                      <span className="text-sm tabular-nums text-muted-foreground">
                         {formatPaise(expense.amount_paise)}
                       </span>
                     </li>
