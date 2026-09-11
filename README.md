@@ -135,15 +135,35 @@ expense-ledger/
 After cloning / forking the repository:
 
 ▫️Frontend
-```
+```bash
 git clone https://github.com/divyanshsood22/expense-ledger.git
 cd expense-ledger
 npm install
 npm run dev
 ```
 ▫️Production Build
-```
+```bash
 npm run build
+```
+▫️Backend
+```bash
+supabase secrets set ACCESS_CODE_SALT=
+supabase secrets set ACCESS_CODE_HASH=
+supabase secrets set SESSION_SECRET=
+supabase secrets set ALLOWED_ORIGIN=http://localhost:5173,https://your-production-domain
+supabase secrets set VAPID_PUBLIC_KEY=
+supabase secrets set VAPID_PRIVATE_KEY=
+supabase secrets set VAPID_SUBJECT=mailto:you@example.com
+supabase secrets set CRON_SECRET=
+```
+Then deploy the functions:
+```bash
+supabase functions deploy verify-access --use-api
+supabase functions deploy check-session --use-api
+supabase functions deploy expenses --use-api
+supabase functions deploy historical-summaries --use-api
+supabase functions deploy save-push-subscription --use-api
+supabase functions deploy send-notifications --use-api
 ```
 <br>
 
