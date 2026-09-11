@@ -14,11 +14,11 @@ It helps track daily spending, view expense history, analyze spending patterns, 
 
 <div align = "center">
 
-![Website](https://img.shields.io/website?url=https%3A%2F%2Fexpense-ledger-sood.vercel.app%2F&up_message=Online&down_message=Offline&style=flat-square&label=%F0%9F%8C%90%20Website)
-![Vercel](https://img.shields.io/badge/Vercel-Online-000000?style=flat-square&logo=vercel&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-Online-3ECF8E?style=flat-square&logo=supabase&logoColor=white)
-![PWA](https://img.shields.io/badge/PWA-Installable-5A0FC8?style=flat-square&logo=pwa&logoColor=white)
-![Web Push](https://img.shields.io/badge/Web%20Push-Enabled-F59E0B?style=flat-square&logo=googlechrome&logoColor=white)
+![Website](https://img.shields.io/website?url=https%3A%2F%2Fexpense-ledger-sood.vercel.app%2F&up_message=Online&down_message=Offline&style=flat&label=%F0%9F%8C%90%20Website)
+![Vercel](https://img.shields.io/badge/Vercel-Online-000000?style=flat&logo=vercel&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-Online-3ECF8E?style=flat&logo=supabase&logoColor=white)
+![PWA](https://img.shields.io/badge/PWA-Installable-5A0FC8?style=flat&logo=pwa&logoColor=white)
+![Web Push](https://img.shields.io/badge/Web%20Push-Enabled-F59E0B?style=flat&logo=googlechrome&logoColor=white)
 
 </div>
 
