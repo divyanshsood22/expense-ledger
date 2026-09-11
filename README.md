@@ -1,5 +1,11 @@
 # 🌐Expense Ledger
 
+<div align = "center">
+
+<img src="public/logo.png" alt="Logo" width="150">
+
+</div>
+
 Expense Ledger is a personal daily expense tracking web application built to replace manually maintaining expenses and totals with a simple digital ledger.
 
 It helps track daily spending, view expense history, analyze spending patterns, and receive reminders to keep the ledger updated.
